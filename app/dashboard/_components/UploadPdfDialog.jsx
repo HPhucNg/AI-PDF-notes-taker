@@ -12,11 +12,12 @@ import {
   } from "@/components/ui/dialog"
   import { Input } from "@/components/ui/input"
   import { Button } from '@/components/ui/button'
-import { useMutation } from 'convex/react'
+import { useAction, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Loader2Icon } from 'lucide-react'
 import uuid4 from 'uuid4'
 import { useUser } from '@clerk/nextjs'
+import axios from 'axios'
 
 
 function UploadPdfDialog({children}) {
@@ -24,6 +25,7 @@ function UploadPdfDialog({children}) {
     const generateUploadUrl = useMutation(api.fileStorage.generateUploadUrl);
     const addFileEntry = useMutation(api.fileStorage.AddFileEntryToDb);
     const getFileUrl = useMutation(api.fileStorage.getFileUrl);
+    const embeddDocument = useAction(api.myAction.ingest);
     const {user}=useUser();
 
     const [file,setFile]=useState();
@@ -52,6 +54,7 @@ function UploadPdfDialog({children}) {
 
         const fileId = uuid4();
         const fileUrl = await getFileUrl({storageId:storageId})
+
         // Step 3: Save the newly allocated storage id to the database
         const resp = await addFileEntry({
             fileId:fileId,
@@ -63,7 +66,18 @@ function UploadPdfDialog({children}) {
         })
 
 
-        console.log(resp);
+        //console.log(resp);
+
+        //API Call to Fetch PDF Process Data
+        const ApiResp = await axios.get('/api/pdf-loader?pdfUrl='+fileUrl);
+        console.log(ApiResp.data.result);
+        await embeddDocument({
+            splitText:ApiResp.data.result,
+            fileId:fileId,
+        });
+        //console.log(embdedResult)
+
+
         setLoading(false)
 
     }

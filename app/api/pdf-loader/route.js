@@ -3,8 +3,13 @@ import { WebPDFLoader } from "@langchain/community/document_loaders/web/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
 
-const pdfUrl = "https://tidy-llama-434.convex.cloud/api/storage/bf03f346-227a-42e5-84f8-8e8596255194"
+//const pdfUrl = "https://tidy-llama-434.convex.cloud/api/storage/bf03f346-227a-42e5-84f8-8e8596255194"
 export async function GET(req){
+
+    const reqUrl = req.url;
+    const {searchParams} = new URL(reqUrl);
+    const pdfUrl = searchParams.get('pdfUrl');
+    console.log(pdfUrl);
 
     //1. load the PDF File
     const response = await fetch(pdfUrl);
